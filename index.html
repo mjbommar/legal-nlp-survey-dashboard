@@ -535,6 +535,11 @@
                     <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Citations</h3>
                     <p id="modal-citations" class="text-gray-700"></p>
                 </div>
+                
+                <div id="modal-links-container" style="display: none;">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Related Links</h3>
+                    <div id="modal-links" class="flex flex-col gap-1"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -1244,6 +1249,75 @@
                 
                 // Citations
                 document.getElementById('modal-citations').textContent = paper.num_cited_by || 'No citation data available';
+                
+                // Extract and display URLs
+                const linksContainer = document.getElementById('modal-links-container');
+                const linksDiv = document.getElementById('modal-links');
+                linksDiv.innerHTML = '';
+                
+                // Function to extract URLs from any string property
+                function extractURLs(text) {
+                    if (!text || typeof text !== 'string') return [];
+                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    return text.match(urlRegex) || [];
+                }
+                
+                // Check all properties for URLs
+                let foundLinks = [];
+                for (const key in paper) {
+                    if (typeof paper[key] === 'string') {
+                        const urls = extractURLs(paper[key]);
+                        if (urls.length > 0) {
+                            foundLinks = [...foundLinks, ...urls];
+                        }
+                    }
+                }
+                
+                // Filter out duplicates and create links
+                const uniqueLinks = [...new Set(foundLinks)];
+                
+                // Always show links container since we'll add Google Scholar search
+                linksContainer.style.display = 'block';
+                
+                // Add paper title for Google Scholar search
+                const paperTitle = paper.llm_title || paper.title || '';
+                if (paperTitle) {
+                    const scholarQuery = encodeURIComponent(paperTitle);
+                    const scholarUrl = `https://scholar.google.com/scholar?q=${scholarQuery}`;
+                    
+                    linksDiv.innerHTML += `
+                        <a href="${scholarUrl}" target="_blank" rel="noopener noreferrer" class="text-primary-600 hover:text-primary-800 inline-flex items-center">
+                            <i class="fas fa-graduation-cap mr-2"></i> Search on Google Scholar
+                        </a>
+                    `;
+                }
+                
+                // Add any extracted links
+                uniqueLinks.forEach(url => {
+                    let icon = 'fas fa-external-link-alt';
+                    let label = 'Link';
+                    
+                    // Try to label the link based on domain
+                    if (url.includes('github.com')) {
+                        icon = 'fab fa-github';
+                        label = 'GitHub Repository';
+                    } else if (url.includes('arxiv.org')) {
+                        icon = 'fas fa-file-pdf';
+                        label = 'arXiv Paper';
+                    } else if (url.includes('aclweb.org')) {
+                        icon = 'fas fa-file-alt';
+                        label = 'ACL Paper';
+                    } else if (url.includes('scholar.google.com')) {
+                        icon = 'fas fa-graduation-cap';
+                        label = 'Google Scholar';
+                    }
+                    
+                    linksDiv.innerHTML += `
+                        <a href="${url}" target="_blank" rel="noopener noreferrer" class="text-primary-600 hover:text-primary-800 inline-flex items-center">
+                            <i class="${icon} mr-2"></i> ${label}
+                        </a>
+                    `;
+                });
                 
                 // Show modal
                 document.getElementById('paper-modal').style.display = 'block';
