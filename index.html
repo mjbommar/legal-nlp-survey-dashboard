@@ -657,7 +657,7 @@
                             }
                         },
                         {
-                            name: 'Citations',
+                            name: 'Citations ↓',
                             width: '10%',
                             sort: {
                                 enabled: true
@@ -679,7 +679,14 @@
                     search: {
                         enabled: false,
                     },
-                    sort: true,
+                    sort: {
+                        enabled: true,
+                        multiColumn: true,
+                        initialState: {
+                            columnId: 4, // Citations column (0-based index)
+                            direction: 'desc'
+                        }
+                    },
                     language: {
                         'pagination': {
                             'previous': '←',
@@ -1376,6 +1383,8 @@
                 })
                 .then(data => {
                     console.log(`Loaded ${data.length} papers`);
+                    // Sort papers by citation count in descending order
+                    data.sort((a, b) => (b.num_cited_by || 0) - (a.num_cited_by || 0));
                     allPapers = data;
                     filteredPapers = data;
                     
