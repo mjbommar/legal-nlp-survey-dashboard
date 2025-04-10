@@ -804,7 +804,8 @@
                     console.error("Error getting keyword values:", error);
                 }
                 
-                filteredPapers = allPapers.filter(paper => {
+                // Filter papers based on selected criteria
+                let filtered = allPapers.filter(paper => {
                     // Apply year filter
                     if (yearFilter && paper.year && paper.year.toString() !== yearFilter) {
                         return false;
@@ -868,6 +869,12 @@
                     
                     return true;
                 });
+                
+                // Sort filtered papers by citation count (descending)
+                filtered.sort((a, b) => (b.num_cited_by || 0) - (a.num_cited_by || 0));
+                
+                // Update filtered papers
+                filteredPapers = filtered;
                 
                 // Update grid with filtered data
                 updateGrid(filteredPapers);
