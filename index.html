@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal NLP Research Explorer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        },
+                        secondary: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            300: '#5eead4',
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        },
+                        accent: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Grid.js CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+    
+    <!-- Choices.js for autocomplete -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Grid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/gridjs/dist/gridjs.umd.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            font-size: 75%;
+            font-weight: 600;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.375rem;
+            margin: 0.1rem;
+        }
+        
+        .badge-pre-processing { background-color: #9333ea; color: white; }
+        .badge-machine-summarization { background-color: #3b82f6; color: white; }
+        .badge-classification { background-color: #10b981; color: white; }
+        .badge-information-retrieval { background-color: #f59e0b; color: white; }
+        .badge-information-extraction { background-color: #ef4444; color: white; }
+        .badge-text-generation { background-color: #6366f1; color: white; }
+        .badge-resources { background-color: #0891b2; color: white; }
+        
+        /* Loading spinner */
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #6366f1;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        
+        /* Tab styles */
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Grid.js customizations */
+        .gridjs-wrapper {
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        
+        .gridjs-table {
+            border: none;
+        }
+        
+        .gridjs-th {
+            background-color: #f9fafb;
+            color: #374151;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+        
+        .gridjs-tr:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .gridjs-pagination {
+            border-top: none;
+        }
+        
+        .gridjs-pagination .gridjs-pages button {
+            border-radius: 0.375rem;
+            margin: 0 0.125rem;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            min-width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gridjs-pagination .gridjs-pages button.gridjs-currentPage {
+            background-color: #6366f1;
+            color: white;
+        }
+        
+        .gridjs-pagination .gridjs-pages button[data-testid="pagination-next"],
+        .gridjs-pagination .gridjs-pages button[data-testid="pagination-previous"] {
+            font-size: 18px;
+            line-height: 1;
+        }
+        
+        /* Chart containers */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        
+        /* Choices.js customizations */
+        .choices__inner {
+            background-color: white;
+            border-radius: 0.375rem;
+            min-height: 42px; /* Match the height of the search input */
+            padding: 0.5rem 0.75rem;
+            border: 1px solid rgb(209, 213, 219);
+        }
+        
+        .choices__input {
+            min-height: 24px;
+        }
+        
+        .choices__list--multiple .choices__item {
+            background-color: #6366f1;
+            border: 1px solid #5661f0;
+            border-radius: 0.375rem;
+        }
+        
+        .choices__list--dropdown {
+            border-radius: 0.375rem;
+        }
+        
+        .choices__list--dropdown .choices__item--selectable.is-highlighted {
+            background-color: #e0e7ff;
+            color: #4338ca;
+        }
+        
+        /* Hide any extra search inputs that might be generated by Grid.js */
+        .gridjs-search {
+            display: none !important;
+        }
+        
+        /* Improve Grid.js table styling */
+        .gridjs-wrapper {
+            box-shadow: none;
+            border: none;
+            width: 100%;
+        }
+        
+        .gridjs-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        .gridjs-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        
+        .gridjs-td {
+            white-space: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 12px 16px;
+            word-wrap: break-word;
+        }
+        
+        .gridjs-th {
+            padding: 12px 16px;
+        }
+        
+        /* Papers grid specific column styles */
+        .papers-grid-table td:nth-child(1) {
+            width: 35%;
+        }
+        
+        .papers-grid-table td:nth-child(2) {
+            width: 25%;
+        }
+        
+        .papers-grid-table td:nth-child(3) {
+            width: 8%;
+            text-align: center;
+        }
+        
+        .papers-grid-table td:nth-child(4) {
+            width: 22%;
+        }
+        
+        .papers-grid-table td:nth-child(5) {
+            width: 10%;
+            text-align: center;
+        }
+        
+        /* Matching header styles */
+        .papers-grid-table th:nth-child(3),
+        .papers-grid-table th:nth-child(5) {
+            text-align: center;
+        }
+        
+        /* Responsive adjustments for small screens */
+        @media (max-width: 768px) {
+            .papers-grid-table {
+                min-width: 650px; /* Ensure minimum width for scrollable area */
+            }
+            
+            .gridjs-pagination .gridjs-summary {
+                flex-basis: 100%;
+                margin-bottom: 0.5rem;
+                text-align: center;
+            }
+            
+            .gridjs-pagination .gridjs-pages {
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-scroll text-primary-600 text-2xl mr-2"></i>
+                        <span class="font-bold text-xl text-gray-800">Legal NLP Explorer</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="#" class="text-sm font-medium text-gray-500 hover:text-gray-700" id="show-info">
+                        <i class="fas fa-circle-info mr-1"></i> About
+                    </a>
+                    <a href="https://github.com/mjbommar/legal-nlp-survey" target="_blank" class="text-sm font-medium text-gray-500 hover:text-gray-700">
+                        <i class="fab fa-github mr-1"></i> GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Tabs navigation -->
+        <div class="mb-6">
+            <ul class="flex border-b border-gray-200">
+                <li class="mr-1">
+                    <a href="#" class="tab-link active bg-white py-2 px-4 inline-block rounded-t-lg border-l border-t border-r border-gray-200 text-primary-600 font-medium" data-tab="tab-papers">
+                        <i class="fas fa-table mr-1"></i> Papers
+                    </a>
+                </li>
+                <li class="mr-1">
+                    <a href="#" class="tab-link bg-gray-100 py-2 px-4 inline-block rounded-t-lg border-l border-t border-r border-gray-200 text-gray-600 font-medium hover:text-primary-600" data-tab="tab-charts">
+                        <i class="fas fa-chart-column mr-1"></i> Analytics
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Loading state -->
+        <div id="loading" class="my-8 text-center">
+            <div class="loader"></div>
+            <p class="text-gray-600 mt-4">Loading papers data...</p>
+        </div>
+        
+        <!-- Papers Tab Content -->
+        <div id="tab-papers" class="tab-content active">
+            <!-- Filter section -->
+            <div class="bg-white rounded-lg shadow p-5 mb-6">
+                <div class="flex flex-col mb-4">
+                    <div class="flex flex-col md:flex-row justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-2 md:mb-0">Filters</h2>
+                        
+                        <button id="reset-filters" class="bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium py-2 px-4 border border-gray-300 rounded inline-flex items-center w-auto">
+                            <i class="fas fa-undo-alt mr-2 text-sm"></i>
+                            Reset All Filters
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="year-filter" class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                            <div class="relative">
+                                <select id="year-filter" class="appearance-none bg-gray-50 border border-gray-300 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-primary-500 w-full">
+                                    <option value="">All Years</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="classification-filter" class="block text-sm font-medium text-gray-700 mb-1">Classification</label>
+                            <div class="relative">
+                                <select id="classification-filter" class="appearance-none bg-gray-50 border border-gray-300 text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-primary-500 w-full">
+                                    <option value="">All Classifications</option>
+                                    <option value="Machine Summarization">Machine Summarization</option>
+                                    <option value="Pre-Processing">Pre-Processing</option>
+                                    <option value="Classification">Classification</option>
+                                    <option value="Information Retrieval">Information Retrieval</option>
+                                    <option value="Information Extraction">Information Extraction</option>
+                                    <option value="Text Generation">Text Generation</option>
+                                    <option value="Resources">Resources</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="search-input" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                            <div class="relative">
+                                <input id="search-input" type="text" placeholder="Search by title, author, abstract..." class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label for="keyword-filter" class="block text-sm font-medium text-gray-700 mb-1">Keywords</label>
+                        <select id="keyword-filter" multiple placeholder="Select keywords...">
+                            <!-- Will be populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <p id="results-count" class="text-sm text-gray-500"></p>
+                </div>
+            </div>
+            
+            <!-- Grid.js container -->
+            <div class="bg-white rounded-lg shadow p-5 overflow-hidden">
+                <div id="papers-grid" class="w-full overflow-x-auto"></div>
+            </div>
+        </div>
+        
+        <!-- Charts Tab Content -->
+        <div id="tab-charts" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Papers by Year Chart -->
+                <div class="bg-white rounded-lg shadow p-5">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Papers by Year</h2>
+                    <div class="chart-container">
+                        <canvas id="papers-by-year-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Papers by Classification Chart -->
+                <div class="bg-white rounded-lg shadow p-5">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Papers by Classification</h2>
+                    <div class="chart-container">
+                        <canvas id="papers-by-classification-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Citations by Classification Chart -->
+                <div class="bg-white rounded-lg shadow p-5">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Average Citations by Classification</h2>
+                    <div class="chart-container">
+                        <canvas id="citations-by-classification-chart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Yearly Trend by Classification Chart -->
+                <div class="bg-white rounded-lg shadow p-5">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Publication Trends by Classification</h2>
+                    <div class="chart-container">
+                        <canvas id="yearly-trend-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-8 text-center text-gray-500 text-sm">
+            <p>Legal NLP Explorer &copy; 2025 | Abstracts classified with OpenAI GPT-4o</p>
+        </div>
+    </div>
+    
+    <!-- Paper details modal -->
+    <div id="paper-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-start mb-4">
+                <h2 id="modal-title" class="text-xl font-semibold text-gray-800"></h2>
+                <span class="close">&times;</span>
+            </div>
+            
+            <div id="modal-content" class="space-y-4">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Authors</h3>
+                    <p id="modal-authors" class="text-gray-700"></p>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Year</h3>
+                    <p id="modal-year" class="text-gray-700"></p>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Classifications</h3>
+                    <div id="modal-classifications"></div>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Abstract</h3>
+                    <p id="modal-abstract" class="text-gray-700"></p>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Keywords</h3>
+                    <div id="modal-keywords" class="flex flex-wrap gap-1"></div>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Citations</h3>
+                    <p id="modal-citations" class="text-gray-700"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info modal -->
+    <div id="info-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">About Legal NLP Explorer</h2>
+                <span class="close">&times;</span>
+            </div>
+            
+            <div class="space-y-4">
+                <p class="text-gray-700">
+                    This tool provides an interactive way to explore legal NLP research papers and their classifications.
+                </p>
+                
+                <h3 class="text-lg font-medium text-gray-800">Classifications</h3>
+                <div class="space-y-2">
+                    <div><span class="badge badge-machine-summarization">Machine Summarization</span> - Papers focused on automatic summarization of legal texts</div>
+                    <div><span class="badge badge-pre-processing">Pre-Processing</span> - Papers about cleaning, normalizing, and preparing legal text data</div>
+                    <div><span class="badge badge-classification">Classification</span> - Papers on categorizing legal texts or predicting outcomes</div>
+                    <div><span class="badge badge-information-retrieval">Information Retrieval</span> - Papers on search and retrieval in legal document collections</div>
+                    <div><span class="badge badge-information-extraction">Information Extraction</span> - Papers on extracting structured information from legal texts</div>
+                    <div><span class="badge badge-text-generation">Text Generation</span> - Papers on automatically generating legal text</div>
+                    <div><span class="badge badge-resources">Resources</span> - Papers presenting datasets, tools, or resources for legal NLP</div>
+                </div>
+                
+                <p class="text-gray-700">
+                    Paper classifications were generated using OpenAI's GPT-4o model to analyze paper abstracts.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables to store data
+            let allPapers = [];
+            let grid;
+            let filteredPapers = [];
+            let charts = {};
+            
+            // Tab switching
+            document.querySelectorAll('.tab-link').forEach(tabLink => {
+                tabLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.tab-link').forEach(tab => {
+                        tab.classList.remove('active', 'bg-white', 'text-primary-600');
+                        tab.classList.add('bg-gray-100', 'text-gray-600');
+                    });
+                    
+                    // Add active class to clicked tab
+                    this.classList.remove('bg-gray-100', 'text-gray-600');
+                    this.classList.add('active', 'bg-white', 'text-primary-600');
+                    
+                    // Hide all tab contents
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show the corresponding tab content
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // Update charts if the charts tab is activated
+                    if (tabId === 'tab-charts' && Object.keys(charts).length > 0) {
+                        updateAllCharts(filteredPapers);
+                    }
+                });
+            });
+            
+            // Initialize Grid.js
+            function initializeGrid(data) {
+                grid = new gridjs.Grid({
+                    columns: [
+                        {
+                            name: 'Title',
+                            width: '35%',
+                            formatter: (cell, row) => {
+                                return gridjs.html(`<div class="font-medium text-primary-600 hover:text-primary-800 cursor-pointer paper-title" data-id="${row.cells[5].data}">${cell}</div>`);
+                            }
+                        },
+                        {
+                            name: 'Authors',
+                            width: '25%',
+                            formatter: (cell) => {
+                                if (cell.length > 3) {
+                                    return `${cell.slice(0, 3).join(', ')} et al.`;
+                                }
+                                return cell.join(', ');
+                            }
+                        },
+                        {
+                            name: 'Year',
+                            width: '8%',
+                            sort: {
+                                enabled: true
+                            }
+                        },
+                        {
+                            name: 'Classifications',
+                            width: '22%',
+                            formatter: (cell) => {
+                                if (!cell || cell.length === 0) {
+                                    return gridjs.html('<span class="text-gray-400 text-sm">Not classified</span>');
+                                }
+                                
+                                return gridjs.html(cell.map(cat => {
+                                    const className = `badge-${cat.toLowerCase().replace(/\\s+/g, '-')}`;
+                                    return `<span class="badge ${className}">${cat}</span>`;
+                                }).join(' '));
+                            }
+                        },
+                        {
+                            name: 'Citations',
+                            width: '10%',
+                            sort: {
+                                enabled: true
+                            }
+                        },
+                        {
+                            name: 'ID',
+                            hidden: true
+                        }
+                    ],
+                    data: data.map(paper => [
+                        paper.llm_title || paper.title || 'Untitled',
+                        paper.authors || [],
+                        paper.year || 'N/A',
+                        paper.classifications || [],
+                        paper.num_cited_by || 0,
+                        paper.id
+                    ]),
+                    search: {
+                        enabled: false,
+                    },
+                    sort: true,
+                    language: {
+                        'pagination': {
+                            'previous': '←',
+                            'next': '→',
+                            'showing': 'Showing',
+                            'of': 'of',
+                            'to': 'to',
+                            'results': ''
+                        }
+                    },
+                    className: {
+                        container: 'papers-grid-container w-full',
+                        table: 'papers-grid-table w-full',
+                        td: 'papers-grid-cell',
+                        th: 'papers-grid-header'
+                    },
+                    fixedHeader: true,
+                    pagination: {
+                        enabled: true,
+                        limit: 15
+                    }
+                }).render(document.getElementById('papers-grid'));
+                
+                // Handle paper title click to show details
+                document.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('paper-title') || e.target.parentElement.classList.contains('paper-title')) {
+                        const target = e.target.classList.contains('paper-title') ? e.target : e.target.parentElement;
+                        const paperId = target.getAttribute('data-id');
+                        const paper = allPapers.find(p => p.id === paperId);
+                        
+                        if (paper) {
+                            showPaperDetails(paper);
+                        }
+                    }
+                });
+            }
+            
+            // Initialize keyword autocomplete
+            let keywordChoice;
+            function initializeKeywordAutocomplete(allKeywords) {
+                const keywordFilter = document.getElementById('keyword-filter');
+                
+                if (!keywordFilter) {
+                    console.error("Keyword filter element not found");
+                    return;
+                }
+                
+                if (keywordChoice) {
+                    keywordChoice.destroy();
+                }
+                
+                try {
+                    keywordChoice = new Choices(keywordFilter, {
+                    removeItemButton: true,
+                    searchResultLimit: 10,
+                    renderChoiceLimit: 30,
+                    placeholder: true,
+                    placeholderValue: 'Select keywords...',
+                    searchPlaceholderValue: 'Type to search...',
+                    itemSelectText: 'Press to select',
+                    noResultsText: 'No keywords found',
+                    noChoicesText: 'No keywords to choose from',
+                    classNames: {
+                        containerInner: 'choices__inner',
+                        input: 'choices__input',
+                        inputCloned: 'choices__input--cloned',
+                        list: 'choices__list',
+                        listItems: 'choices__list--multiple',
+                        listSingle: 'choices__list--single',
+                        listDropdown: 'choices__list--dropdown',
+                        item: 'choices__item',
+                        itemDeleted: 'choices__item--deleted',
+                        itemSelectable: 'choices__item--selectable',
+                        itemDisabled: 'choices__item--disabled',
+                        itemChoice: 'choices__item--choice',
+                        placeholder: 'choices__placeholder',
+                        button: 'choices__button'
+                    }
+                });
+                    
+                    // Add keyword options
+                    keywordChoice.setChoices(
+                        allKeywords.map(keyword => ({
+                            value: keyword,
+                            label: keyword
+                        })),
+                        'value',
+                        'label',
+                        false
+                    );
+                    
+                    // Listen for changes to apply filters
+                    keywordFilter.addEventListener('change', function() {
+                        applyFilters();
+                    });
+                } catch (error) {
+                    console.error("Error initializing Choices.js:", error);
+                }
+            }
+            
+            // Apply filters and search
+            function applyFilters() {
+                const yearFilter = document.getElementById('year-filter').value;
+                const classificationFilter = document.getElementById('classification-filter').value;
+                const searchTerm = document.getElementById('search-input').value.toLowerCase();
+                
+                // Safely get the keyword values
+                let selectedKeywords = [];
+                try {
+                    if (keywordChoice && typeof keywordChoice.getValue === 'function') {
+                        const values = keywordChoice.getValue();
+                        selectedKeywords = Array.isArray(values) ? values.map(item => item.value) : [];
+                    }
+                } catch (error) {
+                    console.error("Error getting keyword values:", error);
+                }
+                
+                filteredPapers = allPapers.filter(paper => {
+                    // Apply year filter
+                    if (yearFilter && paper.year && paper.year.toString() !== yearFilter) {
+                        return false;
+                    }
+                    
+                    // Apply classification filter
+                    if (classificationFilter && (!paper.classifications || !paper.classifications.includes(classificationFilter))) {
+                        return false;
+                    }
+                    
+                    // Apply keyword filter
+                    if (selectedKeywords.length > 0) {
+                        if (!paper.llm_keywords || !paper.llm_keywords.some(keyword => 
+                            selectedKeywords.some(selectedKw => 
+                                keyword.toLowerCase().includes(selectedKw.toLowerCase())
+                            )
+                        )) {
+                            return false;
+                        }
+                    }
+                    
+                    // Apply search filter
+                    if (searchTerm) {
+                        // Search in titles
+                        const titleFields = [
+                            (paper.title || '').toLowerCase(),
+                            (paper.llm_title || '').toLowerCase()
+                        ];
+                        
+                        // Search in authors
+                        const authorFields = [];
+                        if (paper.authors && paper.authors.length > 0) {
+                            authorFields.push(paper.authors.join(' ').toLowerCase());
+                        }
+                        if (paper.llm_authors) {
+                            authorFields.push(paper.llm_authors.toLowerCase());
+                        }
+                        if (paper.author_string) {
+                            authorFields.push(paper.author_string.toLowerCase());
+                        }
+                        
+                        // Search in abstracts
+                        const abstractFields = [
+                            (paper.abstract || '').toLowerCase(),
+                            (paper.llm_abstract || '').toLowerCase()
+                        ];
+                        
+                        // Search in keywords
+                        const keywordFields = paper.llm_keywords ? [paper.llm_keywords.join(' ').toLowerCase()] : [];
+                        
+                        // Check if any field contains the search term
+                        const matchesTitle = titleFields.some(field => field.includes(searchTerm));
+                        const matchesAuthor = authorFields.some(field => field.includes(searchTerm));
+                        const matchesAbstract = abstractFields.some(field => field.includes(searchTerm));
+                        const matchesKeywords = keywordFields.some(field => field.includes(searchTerm));
+                        
+                        if (!matchesTitle && !matchesAuthor && !matchesAbstract && !matchesKeywords) {
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                });
+                
+                // Update grid with filtered data
+                updateGrid(filteredPapers);
+                
+                // Update charts if the charts tab is active
+                if (document.getElementById('tab-charts').classList.contains('active')) {
+                    updateAllCharts(filteredPapers);
+                }
+                
+                // Update results count
+                document.getElementById('results-count').textContent = `${filteredPapers.length} papers found`;
+            }
+            
+            // Update Grid with new data
+            function updateGrid(data) {
+                if (grid) {
+                    grid.updateConfig({
+                        data: data.map(paper => [
+                            paper.llm_title || paper.title || 'Untitled',
+                            paper.authors || [],
+                            paper.year || 'N/A',
+                            paper.classifications || [],
+                            paper.num_cited_by || 0,
+                            paper.id
+                        ])
+                    }).forceRender();
+                }
+            }
+            
+            // Initialize charts
+            function initializeCharts() {
+                // Papers by Year chart
+                const yearCtx = document.getElementById('papers-by-year-chart').getContext('2d');
+                charts.yearChart = new Chart(yearCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Number of Papers',
+                            data: [],
+                            backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                            borderColor: 'rgba(99, 102, 241, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Papers by Classification chart
+                const classCtx = document.getElementById('papers-by-classification-chart').getContext('2d');
+                charts.classChart = new Chart(classCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)', // Machine Summarization
+                                'rgba(147, 51, 234, 0.8)', // Pre-Processing
+                                'rgba(16, 185, 129, 0.8)', // Classification
+                                'rgba(245, 158, 11, 0.8)', // Information Retrieval
+                                'rgba(239, 68, 68, 0.8)',  // Information Extraction
+                                'rgba(99, 102, 241, 0.8)', // Text Generation
+                                'rgba(8, 145, 178, 0.8)'   // Resources
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+                
+                // Citations by Classification chart
+                const citationCtx = document.getElementById('citations-by-classification-chart').getContext('2d');
+                charts.citationChart = new Chart(citationCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Average Citations',
+                            data: [],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.6)', // Machine Summarization
+                                'rgba(147, 51, 234, 0.6)', // Pre-Processing
+                                'rgba(16, 185, 129, 0.6)', // Classification
+                                'rgba(245, 158, 11, 0.6)', // Information Retrieval
+                                'rgba(239, 68, 68, 0.6)',  // Information Extraction
+                                'rgba(99, 102, 241, 0.6)', // Text Generation
+                                'rgba(8, 145, 178, 0.6)'   // Resources
+                            ],
+                            borderColor: [
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(147, 51, 234, 1)',
+                                'rgba(16, 185, 129, 1)',
+                                'rgba(245, 158, 11, 1)',
+                                'rgba(239, 68, 68, 1)',
+                                'rgba(99, 102, 241, 1)',
+                                'rgba(8, 145, 178, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                
+                // Yearly Trend by Classification chart
+                const trendCtx = document.getElementById('yearly-trend-chart').getContext('2d');
+                charts.trendChart = new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: []
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Update all charts with filtered data
+            function updateAllCharts(data) {
+                updateYearChart(data);
+                updateClassificationChart(data);
+                updateCitationChart(data);
+                updateTrendChart(data);
+            }
+            
+            // Update Papers by Year chart
+            function updateYearChart(data) {
+                // Group papers by year
+                const yearCounts = {};
+                data.forEach(paper => {
+                    if (paper.year) {
+                        yearCounts[paper.year] = (yearCounts[paper.year] || 0) + 1;
+                    }
+                });
+                
+                // Sort years in ascending order
+                const years = Object.keys(yearCounts).sort((a, b) => a - b);
+                const counts = years.map(year => yearCounts[year]);
+                
+                // Update chart data
+                charts.yearChart.data.labels = years;
+                charts.yearChart.data.datasets[0].data = counts;
+                charts.yearChart.update();
+            }
+            
+            // Update Papers by Classification chart
+            function updateClassificationChart(data) {
+                const categories = [
+                    'Machine Summarization',
+                    'Pre-Processing',
+                    'Classification',
+                    'Information Retrieval',
+                    'Information Extraction',
+                    'Text Generation',
+                    'Resources'
+                ];
+                
+                // Count papers by classification
+                const classCounts = {};
+                categories.forEach(cat => {
+                    classCounts[cat] = 0;
+                });
+                
+                data.forEach(paper => {
+                    if (paper.classifications && paper.classifications.length > 0) {
+                        paper.classifications.forEach(cat => {
+                            if (categories.includes(cat)) {
+                                classCounts[cat]++;
+                            }
+                        });
+                    }
+                });
+                
+                // Update chart data
+                charts.classChart.data.labels = categories;
+                charts.classChart.data.datasets[0].data = categories.map(cat => classCounts[cat]);
+                charts.classChart.update();
+            }
+            
+            // Update Citations by Classification chart
+            function updateCitationChart(data) {
+                const categories = [
+                    'Machine Summarization',
+                    'Pre-Processing',
+                    'Classification',
+                    'Information Retrieval',
+                    'Information Extraction',
+                    'Text Generation',
+                    'Resources'
+                ];
+                
+                // Calculate average citations by classification
+                const classCitations = {};
+                const paperCounts = {};
+                
+                categories.forEach(cat => {
+                    classCitations[cat] = 0;
+                    paperCounts[cat] = 0;
+                });
+                
+                data.forEach(paper => {
+                    if (paper.classifications && paper.classifications.length > 0) {
+                        paper.classifications.forEach(cat => {
+                            if (categories.includes(cat)) {
+                                classCitations[cat] += (paper.num_cited_by || 0);
+                                paperCounts[cat]++;
+                            }
+                        });
+                    }
+                });
+                
+                // Calculate averages
+                const averageCitations = categories.map(cat => {
+                    if (paperCounts[cat] === 0) return 0;
+                    return parseFloat((classCitations[cat] / paperCounts[cat]).toFixed(2));
+                });
+                
+                // Update chart data
+                charts.citationChart.data.labels = categories;
+                charts.citationChart.data.datasets[0].data = averageCitations;
+                charts.citationChart.update();
+            }
+            
+            // Update Yearly Trend by Classification chart
+            function updateTrendChart(data) {
+                const categories = [
+                    'Machine Summarization',
+                    'Pre-Processing',
+                    'Classification',
+                    'Information Retrieval',
+                    'Information Extraction',
+                    'Text Generation',
+                    'Resources'
+                ];
+                
+                // Get the range of years
+                let minYear = 3000, maxYear = 0;
+                data.forEach(paper => {
+                    if (paper.year) {
+                        minYear = Math.min(minYear, paper.year);
+                        maxYear = Math.max(maxYear, paper.year);
+                    }
+                });
+                
+                // Ensure we have at least a range
+                if (minYear === 3000 || maxYear === 0) {
+                    minYear = new Date().getFullYear() - 5;
+                    maxYear = new Date().getFullYear();
+                }
+                
+                // Create array of years
+                const years = [];
+                for (let year = minYear; year <= maxYear; year++) {
+                    years.push(year);
+                }
+                
+                // Count papers by year and category
+                const yearlyData = {};
+                categories.forEach(cat => {
+                    yearlyData[cat] = {};
+                    years.forEach(year => {
+                        yearlyData[cat][year] = 0;
+                    });
+                });
+                
+                data.forEach(paper => {
+                    if (paper.year && paper.classifications && paper.classifications.length > 0) {
+                        paper.classifications.forEach(cat => {
+                            if (categories.includes(cat) && years.includes(paper.year)) {
+                                yearlyData[cat][paper.year]++;
+                            }
+                        });
+                    }
+                });
+                
+                // Create datasets for the chart
+                const datasets = categories.map((cat, index) => {
+                    const colors = [
+                        'rgba(59, 130, 246, 1)', // Machine Summarization
+                        'rgba(147, 51, 234, 1)', // Pre-Processing
+                        'rgba(16, 185, 129, 1)', // Classification
+                        'rgba(245, 158, 11, 1)', // Information Retrieval
+                        'rgba(239, 68, 68, 1)',  // Information Extraction
+                        'rgba(99, 102, 241, 1)', // Text Generation
+                        'rgba(8, 145, 178, 1)'   // Resources
+                    ];
+                    
+                    return {
+                        label: cat,
+                        data: years.map(year => yearlyData[cat][year]),
+                        borderColor: colors[index],
+                        backgroundColor: colors[index].replace('1)', '0.1)'),
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: false
+                    };
+                });
+                
+                // Update chart data
+                charts.trendChart.data.labels = years;
+                charts.trendChart.data.datasets = datasets;
+                charts.trendChart.update();
+            }
+            
+            // Show paper details in modal
+            function showPaperDetails(paper) {
+                // Set modal content
+                document.getElementById('modal-title').textContent = paper.llm_title || paper.title || 'Untitled';
+                
+                // Authors
+                let authors = [];
+                if (paper.authors && paper.authors.length > 0) {
+                    authors = paper.authors;
+                } else if (paper.llm_authors) {
+                    authors = paper.llm_authors.split(',').map(a => a.trim());
+                } else if (paper.author_string) {
+                    authors = paper.author_string.split(',').map(a => a.trim());
+                }
+                document.getElementById('modal-authors').textContent = authors.join(', ') || 'Unknown';
+                
+                // Year
+                document.getElementById('modal-year').textContent = paper.year || 'Unknown';
+                
+                // Classifications
+                if (!paper.classifications || paper.classifications.length === 0) {
+                    document.getElementById('modal-classifications').innerHTML = '<span class="text-gray-400">Not classified</span>';
+                } else {
+                    document.getElementById('modal-classifications').innerHTML = 
+                        paper.classifications.map(cat => {
+                            const className = `badge-${cat.toLowerCase().replace(/\\s+/g, '-')}`;
+                            return `<span class="badge ${className}">${cat}</span>`;
+                        }).join(' ');
+                }
+                
+                // Abstract
+                const abstract = paper.llm_abstract || paper.abstract || 'No abstract available';
+                document.getElementById('modal-abstract').textContent = abstract;
+                
+                // Keywords
+                if (!paper.llm_keywords || paper.llm_keywords.length === 0) {
+                    document.getElementById('modal-keywords').innerHTML = '<span class="text-gray-400">No keywords available</span>';
+                } else {
+                    document.getElementById('modal-keywords').innerHTML = 
+                        paper.llm_keywords.map(keyword => {
+                            return `<span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">${keyword}</span>`;
+                        }).join(' ');
+                }
+                
+                // Citations
+                document.getElementById('modal-citations').textContent = paper.num_cited_by || 'No citation data available';
+                
+                // Show modal
+                document.getElementById('paper-modal').style.display = 'block';
+            }
+            
+            // Close modals when clicking the X
+            document.querySelectorAll('.close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', function() {
+                    this.closest('.modal').style.display = 'none';
+                });
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            });
+            
+            // Event listeners for filters
+            document.getElementById('year-filter').addEventListener('change', applyFilters);
+            document.getElementById('classification-filter').addEventListener('change', applyFilters);
+            document.getElementById('search-input').addEventListener('input', applyFilters);
+            
+            // Reset filters button
+            document.getElementById('reset-filters').addEventListener('click', function() {
+                document.getElementById('year-filter').value = '';
+                document.getElementById('classification-filter').value = '';
+                document.getElementById('search-input').value = '';
+                
+                // Safely clear the keyword selections
+                try {
+                    if (keywordChoice && typeof keywordChoice.removeActiveItems === 'function') {
+                        keywordChoice.removeActiveItems();
+                    }
+                } catch (error) {
+                    console.error("Error resetting keywords:", error);
+                }
+                
+                applyFilters();
+            });
+            
+            // Show info modal
+            document.getElementById('show-info').addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('info-modal').style.display = 'block';
+            });
+            
+            // Load papers data
+            fetch('papers_web.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(`Loaded ${data.length} papers`);
+                    allPapers = data;
+                    filteredPapers = data;
+                    
+                    // Populate years dropdown
+                    const years = [...new Set(allPapers.map(p => p.year).filter(y => y))].sort((a, b) => b - a);
+                    const yearFilter = document.getElementById('year-filter');
+                    
+                    years.forEach(year => {
+                        const option = document.createElement('option');
+                        option.value = year;
+                        option.textContent = year;
+                        yearFilter.appendChild(option);
+                    });
+                    
+                    // Extract unique keywords from all papers
+                    const allKeywords = new Set();
+                    allPapers.forEach(paper => {
+                        if (paper.llm_keywords && Array.isArray(paper.llm_keywords)) {
+                            paper.llm_keywords.forEach(keyword => {
+                                allKeywords.add(keyword);
+                            });
+                        }
+                    });
+                    const keywordsList = Array.from(allKeywords).sort();
+                    
+                    // Initialize keyword autocomplete
+                    initializeKeywordAutocomplete(keywordsList);
+                    
+                    // Initialize Grid.js with all papers
+                    initializeGrid(allPapers);
+                    
+                    // Initialize charts
+                    initializeCharts();
+                    
+                    // Update results count
+                    document.getElementById('results-count').textContent = `${allPapers.length} papers found`;
+                    
+                    // Hide loading, show paper tab content
+                    document.getElementById('loading').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error("Error loading data:", error);
+                    document.getElementById('loading').innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-4"></i>
+                            <p class="text-gray-800 font-medium mb-2">Error loading data</p>
+                            <p class="text-gray-600">Failed to load papers_web.json: ${error.message}</p>
+                            <p class="text-gray-600 mt-4">Please check the browser console for more details.</p>
+                        </div>
+                    `;
+                });
+        });
+    </script>
+</body>
+</html>
